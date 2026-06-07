@@ -1,11 +1,13 @@
 import tensorflow as tf
 import os
 
-# --- 1. PROJECT SETUP AND DATA LOADING ---
+# --- 1. PROJECT SETUP, DATA LOADING AND EDA: EXPLORING DATA ANALYSIS ---
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
     """
-    Carica il dataset dei nei dalle cartelle locali e restituisce i set di train, valid e test.
+    
+
+    Loading dataset: train, valid and test
     """
     print("Tentativo di caricamento del dataset di lesioni cutanee...")
     try:
@@ -13,12 +15,13 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         valid_dir = os.path.join(base_dir, 'valid')
         test_dir = os.path.join(base_dir, 'test')
 
-        # Caricamento tramite Keras dalle directory
+       
+        #Using keras to load from directory
         train_ds = tf.keras.utils.image_dataset_from_directory(
             train_dir,
             image_size=(img_height, img_width),
             batch_size=batch_size,
-            label_mode='categorical', # Necessario per classificazione multi-classe
+            label_mode='categorical', # Useful for multi class
             shuffle=True
         )
         
@@ -38,34 +41,34 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
             shuffle=False
         )
 
-        # Estraiamo i nomi delle classi direttamente dalla cartella di train
+        # Extracting class name from train folder
         class_names = train_ds.class_names
 
-        print("Dataset caricato con successo.")
+        print("Dataset loaded")
         return train_ds, valid_ds, test_ds, class_names
 
     except Exception as e:
-        print(f"Si è verificato un errore durante il caricamento del dataset: {e}")
+        print(f"An error occurred during load: {e}")
         return None, None, None, None
 
 # --- Main Execution Block ---
 
 if __name__ == "__main__":
-    print("--- Project Kickoff: End-to-End Skin Lesion Classifier ---")
+    print("--- Project Kickoff: End-to-End Skin Cancer Classifier ---")
     print("Selected Dataset: Skin Cancer 7-Class")
     
-    # Inserisci qui il percorso della cartella principale dove tieni 'train', 'valid' e 'test'
-    DATASET_PATH = "./percorso/del/tuo/dataset" 
+    # path where 'train', 'valid' and 'test' are located 
+    DATASET_PATH = "./img_folder"
 
-    # Caricamento del dataset
+    # loading datasert
     train_ds, valid_ds, test_ds, class_names = load_dataset(DATASET_PATH)
 
-    # Verifica che i dati siano stati caricati correttamente
+    # Veryfing loading 
     if train_ds is not None:
         print("\n--- Dataset Verification ---")
-        print(f"Classi rilevate automaticamente: {class_names}")
+        print(f"Classes: {class_names}")
         
-        # Estraiamo un batch per vederne la forma
+        # Batch extracting
         for image_batch, labels_batch in train_ds.take(1):
-            print(f"Forma del batch di immagini: {image_batch.shape}")
-            print(f"Forma del batch di etichette: {labels_batch.shape}")
+            print(f"Shape: {image_batch.shape}")
+            print(f"Label: {labels_batch.shape}")
