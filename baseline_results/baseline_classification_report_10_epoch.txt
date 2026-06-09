@@ -1,0 +1,17 @@
+Baseline Model Classification Report
+Test Accuracy: 69.22%
+Test Loss: 1.1480
+
+              precision    recall  f1-score   support
+
+       akiec       0.33      0.21      0.26        28
+         bcc       0.45      0.28      0.34        54
+         bkl       0.34      0.32      0.33       111
+          df       0.00      0.00      0.00        11
+         mel       0.32      0.19      0.24       111
+          nv       0.79      0.91      0.85       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.69       991
+   macro avg       0.32      0.27      0.29       991
+weighted avg       0.64      0.69      0.66       991
