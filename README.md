@@ -44,13 +44,13 @@ After this analysis, i choosed the 10 epoch model.
 From `baseline_classificiation_report_10_epoch.txt` and `baseline_classificiation_report_20_epoch.txt`
 I made a comparative analysis about metrics. 
 In test there's a majority class `nv` (data augmentation is necessary for other class).
-Due to medical/health concern, and due to better model performance, is necessary to focus on recall, cause only the 81% `mel` class (melanome) is diagnosyzed 
+Due to medical/health concern, and due to better model performance, is necessary to focus on recall, cause only the 19% `mel` class (melanome) is diagnosyzed 
 
 ### Confusion Matrix
 From heat map of Confusion Matrix is explained:
 1) on the 20 epochs model , 64 `mel` (melanome) are predicted as `nv` (benign tumor)
-2) minority class such as `df` (dermatophybroma) or `vasc`(vascular lesion) are well rappresented
-
+2) minority class such as `df` (dermatophybroma) or `vasc`(vascular lesion) are not  well rappresented  
+We need further improvement in order to detect better the 3 tumoral forms: `mel`, `bcc` and `akiec`
 
 
 
