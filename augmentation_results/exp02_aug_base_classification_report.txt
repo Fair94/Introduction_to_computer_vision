@@ -1,0 +1,17 @@
+Model Classification Report - exp02_aug_base
+Test Accuracy: 72.35%
+Test Loss: 0.7934
+
+              precision    recall  f1-score   support
+
+       akiec       0.27      0.21      0.24        28
+         bcc       0.43      0.41      0.42        54
+         bkl       0.53      0.37      0.43       111
+          df       0.00      0.00      0.00        11
+         mel       0.42      0.22      0.29       111
+          nv       0.80      0.93      0.86       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.72       991
+   macro avg       0.35      0.31      0.32       991
+weighted avg       0.68      0.72      0.69       991
