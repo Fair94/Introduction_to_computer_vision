@@ -37,32 +37,28 @@ namespace gpuprim = ::cub;
 
 // Required for sorting Eigen::half and bfloat16.
 namespace cub {
-template <>
-__device__ __forceinline__ void ThreadStoreVolatilePtr<Eigen::half>(
-    Eigen::half *ptr, Eigen::half val, Int2Type<true> /*is_primitive*/) {
+
+__device__ __forceinline__ void ThreadStoreVolatilePtr(
+    Eigen::half* ptr, Eigen::half val, Int2Type<true> /*is_primitive*/) {
   *reinterpret_cast<volatile uint16_t *>(ptr) =
       Eigen::numext::bit_cast<uint16_t>(val);
 }
 
-template <>
-__device__ __forceinline__ Eigen::half ThreadLoadVolatilePointer<Eigen::half>(
+__device__ __forceinline__ Eigen::half ThreadLoadVolatilePointer(
     Eigen::half *ptr, Int2Type<true> /*is_primitive*/) {
-  uint16_t result = *reinterpret_cast<volatile uint16_t *>(ptr);
+  const uint16_t result = *reinterpret_cast<volatile const uint16_t *>(ptr);
   return Eigen::numext::bit_cast<Eigen::half>(result);
 }
 
-template <>
-__device__ __forceinline__ void ThreadStoreVolatilePtr<Eigen::bfloat16>(
-    Eigen::bfloat16 *ptr, Eigen::bfloat16 val,
+__device__ __forceinline__ void ThreadStoreVolatilePtr(
+    Eigen::bfloat16* ptr, Eigen::bfloat16 val,
     Int2Type<true> /*is_primitive*/) {
   *reinterpret_cast<volatile uint16_t *>(ptr) =
       Eigen::numext::bit_cast<uint16_t>(val);
 }
 
-template <>
-__device__ __forceinline__ Eigen::bfloat16
-ThreadLoadVolatilePointer<Eigen::bfloat16>(Eigen::bfloat16 *ptr,
-                                           Int2Type<true> /*is_primitive*/) {
+__device__ __forceinline__ Eigen::bfloat16 ThreadLoadVolatilePointer(
+    Eigen::bfloat16 *ptr, Int2Type<true> /*is_primitive*/) {
   uint16_t result = *reinterpret_cast<volatile uint16_t *>(ptr);
   return Eigen::numext::bit_cast<Eigen::bfloat16>(result);
 }

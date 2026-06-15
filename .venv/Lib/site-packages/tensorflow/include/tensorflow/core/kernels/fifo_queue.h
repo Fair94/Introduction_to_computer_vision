@@ -35,7 +35,7 @@ class FIFOQueue : public TypedQueue<std::deque<Tensor> > {
  public:
   FIFOQueue(int32_t capacity, const DataTypeVector& component_dtypes,
             const std::vector<TensorShape>& component_shapes,
-            const string& name);
+            const std::string& name);
 
   // Implementations of QueueInterface methods --------------------------------
 
@@ -47,9 +47,9 @@ class FIFOQueue : public TypedQueue<std::deque<Tensor> > {
   void TryDequeueMany(int num_elements, OpKernelContext* ctx,
                       bool allow_small_batch,
                       CallbackWithTuple callback) override;
-  Status MatchesNodeDef(const NodeDef& node_def) override;
+  absl::Status MatchesNodeDef(const NodeDef& node_def) override;
 
-  int32 size() const override {
+  int32_t size() const override {
     mutex_lock lock(mu_);
     return queues_[0].size();
   }
@@ -61,10 +61,10 @@ class FIFOQueue : public TypedQueue<std::deque<Tensor> > {
   void DequeueLocked(OpKernelContext* ctx, Tuple* tuple)
       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_);
 
-  static Status GetElementComponentFromBatch(const Tuple& tuple, int64_t index,
-                                             int component,
-                                             OpKernelContext* ctx,
-                                             Tensor* out_tensor);
+  static absl::Status GetElementComponentFromBatch(const Tuple& tuple,
+                                                   int64_t index, int component,
+                                                   OpKernelContext* ctx,
+                                                   Tensor* out_tensor);
 
  private:
   FIFOQueue(const FIFOQueue&) = delete;
@@ -80,7 +80,7 @@ class FIFOQueueOp : public TypedQueueOp {
   explicit FIFOQueueOp(OpKernelConstruction* context);
 
  private:
-  Status CreateResource(QueueInterface** ret) override
+  absl::Status CreateResource(QueueInterface** ret) override
       TF_EXCLUSIVE_LOCKS_REQUIRED(mu_);
 
   std::vector<TensorShape> component_shapes_;

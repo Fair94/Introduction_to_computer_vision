@@ -26,11 +26,12 @@ limitations under the License.
 #ifndef TENSORFLOW_CORE_PLATFORM_STRINGPIECE_H_
 #define TENSORFLOW_CORE_PLATFORM_STRINGPIECE_H_
 
+#include "absl/base/macros.h"
 #include "tsl/platform/stringpiece.h"  // IWYU pragma: export
 
 namespace tensorflow {
 
-using StringPiece = tsl::StringPiece;
+using StringPiece ABSL_DEPRECATE_AND_INLINE() = absl::string_view;
 
 }  // namespace tensorflow
 

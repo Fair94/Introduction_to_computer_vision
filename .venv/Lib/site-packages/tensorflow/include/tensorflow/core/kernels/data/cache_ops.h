@@ -62,7 +62,7 @@ class MemoryCacheManager : public ResourceBase {
  public:
   MemoryCacheManager() : cache_(std::make_shared<MemoryCache>()) {}
 
-  string DebugString() const override;
+  std::string DebugString() const override;
 
   std::shared_ptr<MemoryCache> get() { return cache_; }
 
@@ -77,12 +77,11 @@ class AnonymousMemoryCacheHandleOp
   explicit AnonymousMemoryCacheHandleOp(OpKernelConstruction* ctx);
 
  private:
-  string name() override;
-  Status CreateResource(OpKernelContext* ctx,
-                        std::unique_ptr<FunctionLibraryDefinition> flib_def,
-                        std::unique_ptr<ProcessFunctionLibraryRuntime> pflr,
-                        FunctionLibraryRuntime* lib,
-                        MemoryCacheManager** manager) override;
+  std::string name() override;
+  absl::Status CreateResource(
+      OpKernelContext* ctx, std::unique_ptr<FunctionLibraryDefinition> flib_def,
+      std::unique_ptr<ProcessFunctionLibraryRuntime> pflr,
+      FunctionLibraryRuntime* lib, MemoryCacheManager** manager) override;
 };
 
 // Deletes an instance of cache resource.

@@ -36,6 +36,7 @@ limitations under the License.
 #include <vector>
 
 #include "absl/base/casts.h"
+#include "absl/strings/string_view.h"
 #include "tensorflow/core/platform/png.h"
 #include "tensorflow/core/platform/stringpiece.h"
 #include "tensorflow/core/platform/types.h"
@@ -43,9 +44,9 @@ limitations under the License.
 namespace tensorflow {
 namespace png {
 
-// Handy container for decoding informations and struct pointers
+// Handy container for decoding information and struct pointers
 struct DecodeContext {
-  const uint8* data;
+  const uint8_t* data;
   int data_left;
   png_structp png_ptr;
   png_infop info_ptr;
@@ -59,7 +60,7 @@ struct DecodeContext {
   DecodeContext() : png_ptr(nullptr), info_ptr(nullptr) {}
 };
 
-bool DecodeHeader(StringPiece png_string, int* width, int* height,
+bool DecodeHeader(absl::string_view png_string, int* width, int* height,
                   int* components, int* channel_bit_depth,
                   std::vector<std::pair<std::string, std::string> >* metadata);
 
@@ -74,7 +75,7 @@ bool DecodeHeader(StringPiece png_string, int* width, int* height,
 //
 // desired_channels may be 0 to detected it from the input.
 
-bool CommonInitDecode(StringPiece png_string, int desired_channels,
+bool CommonInitDecode(absl::string_view png_string, int desired_channels,
                       int desired_channel_bits, DecodeContext* context);
 
 bool CommonFinishDecode(png_bytep data, int row_bytes, DecodeContext* context);

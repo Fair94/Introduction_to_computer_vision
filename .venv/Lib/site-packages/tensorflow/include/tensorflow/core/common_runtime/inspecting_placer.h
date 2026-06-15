@@ -59,7 +59,7 @@ struct IOColocationGroups {
   // group_devices[i] contains possible devices for group with id i.
   std::vector<PossibleDevices> group_devices;
 
-  string DebugString() const;
+  std::string DebugString() const;
 };
 
 class InspectingPlacer {
@@ -76,8 +76,8 @@ class InspectingPlacer {
 
   // `node` must be
   // PlacerInspectionRequiredOpsChecker::IsPlacerInspectionRequired.
-  Status ComputeIOColocationGroups(const Node& node,
-                                   IOColocationGroups* groups);
+  absl::Status ComputeIOColocationGroups(const Node& node,
+                                         IOColocationGroups* groups);
 
  private:
   const FunctionStack stack_;

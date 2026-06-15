@@ -20,6 +20,10 @@ limitations under the License.
 
 #include "tensorflow/compiler/tf2xla/xla_op_kernel.h"
 #include "tensorflow/core/framework/attr_value.pb.h"
+#include "tensorflow/core/framework/op_kernel.h"
+#include "tensorflow/core/framework/tensor_shape.h"
+#include "tensorflow/core/framework/types.h"
+#include "tensorflow/core/platform/types.h"
 
 namespace tensorflow {
 
@@ -57,8 +61,8 @@ class XlaIfOp : public XlaOpKernel {
   DataTypeVector output_types_;
   std::vector<PartialTensorShape> output_shapes_;
   bool has_token_input_output_;
-  std::vector<string> token_input_nodes_;
-  string original_node_name_;
+  std::vector<std::string> token_input_nodes_;
+  std::string original_node_name_;
 };
 
 }  // namespace tensorflow

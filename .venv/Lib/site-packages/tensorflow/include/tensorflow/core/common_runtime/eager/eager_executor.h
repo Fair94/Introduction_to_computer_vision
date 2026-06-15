@@ -27,6 +27,7 @@ limitations under the License.
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/synchronization/notification.h"
 #include "tensorflow/core/common_runtime/device_factory.h"
 #include "tensorflow/core/common_runtime/function.h"
 #include "tensorflow/core/common_runtime/rendezvous_mgr.h"
@@ -59,23 +60,23 @@ class EagerNode {
 
   // Prepares the node when adding it into EagerExecutor. If any errors happens,
   // EagerExecutor will abort the node immediately.
-  virtual Status Prepare() { return OkStatus(); }
+  virtual absl::Status Prepare() { return absl::OkStatus(); }
 
   // Runs the computation corresponding to this node and blocks till the
   // execution is done.
-  virtual Status Run() = 0;
+  virtual absl::Status Run() = 0;
 
   // Called when this node will not be run due to some error contained in
   // `status`. `status` must not be OK.
   // For example, if the node would have computed some tensors in the Run(),
   // it should poison the corresponding tensor handles in this method.
-  virtual void Abort(Status status) = 0;
+  virtual void Abort(absl::Status status) = 0;
 
   // Returns nullptr iff this Eager node is synchronous.
   virtual AsyncEagerNode* AsAsync() { return nullptr; }
   virtual AsyncRemoteExecuteNode* AsAsyncRemoteExecuteNode() { return nullptr; }
 
-  virtual string DebugString() const = 0;
+  virtual std::string DebugString() const = 0;
 
   // Indicates whether a node failure should make the executor unusable.
   virtual bool Fatal() const { return true; }
@@ -90,7 +91,7 @@ class AsyncEagerNode : public EagerNode {
 
   AsyncEagerNode* AsAsync() final { return this; }
 
-  Status Run() final {
+  absl::Status Run() final {
     return errors::Unimplemented("Don't call AsyncEagerNode::Run().");
   }
 };
@@ -102,7 +103,7 @@ class AsyncRemoteExecuteNode : public AsyncEagerNode {
   virtual const eager::EagerClient* eager_client() const = 0;
   virtual bool needs_remote_inputs() const = 0;
   virtual bool allow_multiple_pending_requests() const = 0;
-  virtual Status SyncExecutors() = 0;
+  virtual absl::Status SyncExecutors() = 0;
 };
 
 // A class for handling async execution (see TFE_ContextSetAsync).
@@ -125,34 +126,34 @@ class EagerExecutor {
   // blocks until all pendings nodes have finished running.
   // Returns the status of executing pending nodes.
   // If async was not enabled, aborts and destroys all pending nodes.
-  Status ShutDown();
+  absl::Status ShutDown();
 
   bool Async() const;
 
   bool StreamingEnqueue() const;
 
   // Inline execute node if executor is in sync mode.
-  Status SyncExecute(EagerNode* node);
+  absl::Status SyncExecute(EagerNode* node);
 
   // - Async Mode: schedules `node` for execution.
   // - Sync Mode: inline execute the 'node' directly.
   // If an error occurs (e.g. EagerExecutor has already been shut down), the
   // `node` is not added to this executor and its Abort() method is called.
-  Status AddOrExecute(std::unique_ptr<EagerNode> node);
+  absl::Status AddOrExecute(std::unique_ptr<EagerNode> node);
 
   // Blocks till all currently pending ops are done.
   // In particular, if EnableAsync() has not beed called, it will not return
   // until that happens (and pendings, at the time of call, nodes finish
   // running). If this executor has already been shut down, its final status is
   // returned.
-  Status WaitForAllPendingNodes();
+  absl::Status WaitForAllPendingNodes();
 
   // Clears all currently set errors which re-enables async execution.
   void ClearError();
 
   // Returns Status based on any errors that occurred during async execution.
-  Status status() const {
-    if (ok()) return OkStatus();
+  absl::Status status() const {
+    if (ok()) return absl::OkStatus();
 
     tf_shared_lock l(node_queue_mutex_);
     return status_;
@@ -192,7 +193,7 @@ class EagerExecutor {
   struct NodeItem : core::RefCounted {
     // Unique id generated in EagerExecutor::Add(). If item1.id < item2.id, it
     // means item1.node is added before item2.node.
-    uint64 id;
+    uint64_t id;
     std::unique_ptr<EagerNode> node;
     NodeState state;
   };
@@ -200,9 +201,10 @@ class EagerExecutor {
   const char* StateStringLocked()
       TF_EXCLUSIVE_LOCKS_REQUIRED(node_queue_mutex_);
 
-  void NodeDone(const core::RefCountPtr<NodeItem>& item, const Status& status,
-                bool from_queue);
-  void NotifyWaiters(uint64 id) TF_EXCLUSIVE_LOCKS_REQUIRED(node_queue_mutex_);
+  void NodeDone(const core::RefCountPtr<NodeItem>& item,
+                const absl::Status& status, bool from_queue);
+  void NotifyWaiters(uint64_t id)
+      TF_EXCLUSIVE_LOCKS_REQUIRED(node_queue_mutex_);
 
   // Starts execution of pending EagerNodes. This function loops till executor
   // state_ is set to kShutDown. If any errors are encountered, these are set
@@ -210,17 +212,18 @@ class EagerExecutor {
   // `status_` is not ok.
   void Run();
 
-  Status RunItem(core::RefCountPtr<NodeItem> item, bool from_queue);
-  Status MoveToUnfinished(core::RefCountPtr<NodeItem> item, bool from_queue);
+  absl::Status RunItem(core::RefCountPtr<NodeItem> item, bool from_queue);
+  absl::Status MoveToUnfinished(core::RefCountPtr<NodeItem> item,
+                                bool from_queue);
 
   // The impl of WaitForAllPendingNodes
   // `lock` is the lock that holds node_queue_mutex_.
-  Status WaitForAllPendingNodesLocked(mutex_lock* lock)
+  absl::Status WaitForAllPendingNodesLocked(mutex_lock* lock)
       TF_EXCLUSIVE_LOCKS_REQUIRED(node_queue_mutex_);
 
-  Status WaitImpl(bool wait_all, uint64 node_id);
+  absl::Status WaitImpl(bool wait_all, uint64_t node_id);
 
-  std::atomic<uint64> next_node_id_;
+  std::atomic<uint64_t> next_node_id_;
 
   mutable mutex node_queue_mutex_;
 
@@ -234,24 +237,24 @@ class EagerExecutor {
       TF_GUARDED_BY(node_queue_mutex_);
 
   // Ordered by NodeItem::id.
-  std::map<uint64, core::RefCountPtr<NodeItem>, std::less<uint64>>
+  std::map<uint64_t, core::RefCountPtr<NodeItem>, std::less<uint64_t>>
       unfinished_nodes_ TF_GUARDED_BY(node_queue_mutex_);
 
   // `status_` is set based on any errors raised during execution of a
   // EagerNode.  It remains set until ClearError is called.
-  Status status_ TF_GUARDED_BY(node_queue_mutex_);
+  absl::Status status_ TF_GUARDED_BY(node_queue_mutex_);
   std::atomic<bool> ok_ TF_GUARDED_BY(node_queue_mutex_);
 
   // Map from id of a EagerNode to condition_variables (not owned by the map).
   // These condition_variables are notified and removed when that EagerNode is
   // done executing, or if an error is found in execution of any EagerNode.
   // The map is ordered by id.
-  std::multimap<uint64, condition_variable*, std::less<uint64>>
+  std::multimap<uint64_t, condition_variable*, std::less<uint64_t>>
       node_done_notifications_ TF_GUARDED_BY(node_queue_mutex_);
 
   // thread_exited_notification_ is notified by the `thread_` right before it
   // exits.
-  Notification thread_exited_notification_;
+  absl::Notification thread_exited_notification_;
 
   // When state_ is set to kShutDown, it indicates that `thread_` should stop as
   // soon as it is done executing the current EagerNode.

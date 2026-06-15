@@ -30,9 +30,10 @@ struct MlirDumpConfig;
 // Dumps 'graph_def' to a file, as textual IR. Returns the file name chosen.
 //
 // Note: This is for debugging use and is not optimized for performance.
-Status DumpTextualIRToFile(const MlirDumpConfig& config, const Graph& graph,
-                           const FunctionLibraryDefinition* flib_def,
-                           WritableFile* file);
+absl::Status DumpTextualIRToFile(const MlirDumpConfig& config,
+                                 const Graph& graph,
+                                 const FunctionLibraryDefinition* flib_def,
+                                 WritableFile* file);
 
 // Config of the textual dump.
 struct MlirDumpConfig {
@@ -61,7 +62,7 @@ struct MlirDumpConfig {
   }
 
   // Op printing flags.
-  mlir::OpPrintingFlags op_printing_flags = std::nullopt;
+  mlir::OpPrintingFlags op_printing_flags = {};
 
   // The target MLIR dialect.
   Dialect dialect = Dialect::kTFG;

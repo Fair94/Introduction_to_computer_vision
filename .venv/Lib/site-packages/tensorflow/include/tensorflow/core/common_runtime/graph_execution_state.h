@@ -43,12 +43,17 @@ struct GraphExecutionStateOptions {
   const DeviceSet* device_set = nullptr;
   const SessionOptions* session_options = nullptr;
   // Unique session identifier. Can be empty.
-  string session_handle;
+  std::string session_handle;
   // A map from node name to device name, representing the unchangeable
   // placement of stateful nodes.
-  std::unordered_map<string, string> stateful_placements;
+  std::unordered_map<std::string, std::string> stateful_placements;
   // Whether to run Placer on the graph.
   bool run_placer = true;
+
+  // Whether to enable tf2xla mlir bridge. The default is true and intends to
+  // work for almost all models. Non default values should only applied to
+  // selective models.
+  bool enable_tf2xla_mlir_bridge = true;
 };
 
 // A ClientGraph is simply a sub-graph of the full graph as induced by
@@ -101,14 +106,14 @@ class GraphExecutionState {
 
   // Creates a new `GraphExecutionState` for the given
   // `graph_def`, which represents the entire graph for a session.
-  static Status MakeForBaseGraph(
+  static absl::Status MakeForBaseGraph(
       GraphDef&& graph_def, const GraphExecutionStateOptions& options,
       std::unique_ptr<GraphExecutionState>* out_state);
 
   // Creates a new `GraphExecutionState` and `SimpleClientGraph`
   // for the subgraph of `original_graph_def` defined by
   // `subgraph_options`.
-  static Status MakeForPrunedGraph(
+  static absl::Status MakeForPrunedGraph(
       const GraphExecutionState& base_execution_state,
       const GraphExecutionStateOptions& options,
       const BuildGraphOptions& subgraph_options,
@@ -133,18 +138,18 @@ class GraphExecutionState {
   // Note that using this interface requires setting the value of
   // config.experimental().disable_optimize_for_static_graph() in the state
   // options to `true`, otherwise it will return an error.
-  Status Extend(const GraphDef& extension_def,
-                std::unique_ptr<GraphExecutionState>* out) const;
+  absl::Status Extend(const GraphDef& extension_def,
+                      std::unique_ptr<GraphExecutionState>* out) const;
 
   // Builds a ClientGraph (a sub-graph of the full graph as induced by
   // the Node set specified in "options").  If successful, returns OK
   // and the caller takes the ownership of "*out". Otherwise, returns
   // an error.
-  Status BuildGraph(const BuildGraphOptions& options,
-                    std::unique_ptr<ClientGraph>* out);
+  absl::Status BuildGraph(const BuildGraphOptions& options,
+                          std::unique_ptr<ClientGraph>* out);
 
   // Optimize the graph with the node set specified in `options`.
-  Status OptimizeGraph(
+  absl::Status OptimizeGraph(
       const BuildGraphOptions& options, const Graph& graph,
       const FunctionLibraryDefinition* flib_def,
       std::unique_ptr<Graph>* optimized_graph,
@@ -161,7 +166,7 @@ class GraphExecutionState {
   const FunctionLibraryDefinition& flib_def() const { return *flib_def_; }
 
   // Returns the node with the given name, or null if it does not exist.
-  const Node* get_node_by_name(const string& name) const {
+  const Node* get_node_by_name(const std::string& name) const {
     NodeNameToCostIdMap::const_iterator iter =
         node_name_to_cost_id_map_.find(name);
     if (iter != node_name_to_cost_id_map_.end()) {
@@ -173,7 +178,7 @@ class GraphExecutionState {
 
   // Returns the map of stateful placements as a map of
   // node name to placement string.
-  std::unordered_map<string, string> GetStatefulPlacements() const {
+  std::unordered_map<std::string, std::string> GetStatefulPlacements() const {
     return stateful_placements_;
   }
 
@@ -182,21 +187,23 @@ class GraphExecutionState {
                       std::unique_ptr<FunctionLibraryDefinition>&& flib_def,
                       const GraphExecutionStateOptions& options);
 
-  Status InitBaseGraph(std::unique_ptr<Graph>&& graph);
+  absl::Status InitBaseGraph(std::unique_ptr<Graph>&& graph,
+                             bool enable_tf2xla_mlir_bridge = true);
 
   // Map of placed stateful nodes, i.e. nodes for which is_stateful()
   // is true, such as "params" and "queue" nodes.  Once placed these
   // nodes can not be moved to a different device.  Maps node names to
   // device names.
-  std::unordered_map<string, string> stateful_placements_;  // Immutable after
-                                                            // ctor.
+  std::unordered_map<std::string, std::string>
+      stateful_placements_;  // Immutable after
+                             // ctor.
   void SaveStatefulNodes(Graph* graph);
   void RestoreStatefulNodes(Graph* graph);
 
   // Extract the subset of the graph that needs to be run, adding feed/fetch
   // ops as needed.
-  Status PruneGraph(const BuildGraphOptions& options, Graph* graph,
-                    subgraph::RewriteGraphMetadata* out_rewrite_metadata);
+  absl::Status PruneGraph(const BuildGraphOptions& options, Graph* graph,
+                          subgraph::RewriteGraphMetadata* out_rewrite_metadata);
 
   // The GraphExecutionState must store a copy of the original GraphDef if
   // either of the following conditions holds:
@@ -209,7 +216,7 @@ class GraphExecutionState {
   const DeviceSet* device_set_;            // Not owned
   const SessionOptions* session_options_;  // Not owned
   // Unique session identifier. Can be empty.
-  string session_handle_;
+  std::string session_handle_;
 
   // Map from name to Node for the full graph in placed_.
   NodeNameToCostIdMap node_name_to_cost_id_map_;

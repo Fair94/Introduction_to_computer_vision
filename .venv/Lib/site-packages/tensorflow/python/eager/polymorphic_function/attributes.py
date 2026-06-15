@@ -44,6 +44,7 @@ ORIGINAL_FUNCTION_NAME = "_original_func_name"
 OUTPUTS_ON_OP_DEVICE = "_OutputsOnOpDevice"
 QUANTIZED_COMPOSITE_FUNCTION = "tf_quant.composite_function"
 QUANTIZED_OPS = "tf_quant.quantized_ops"
+RUNS_AT_MOST_ONCE = "function_runs_at_most_once"
 RUNTIME_CONSTANT_OPTIMIZATION = "runtime_constant_optimization"
 SHARED_RENDEZVOUS = "shared_rendezvous"
 TF_DATA_FUNCTION = "_tf_data_function"
@@ -63,7 +64,7 @@ TIME_MAJOR = "time_major"
 XLA_COMPILE = "_XlaMustCompile"
 XLA_COMPILE_OPTIONAL = "_XlaCompile"
 XLA_SCOPE = "_XlaScope"
-XLA_SEPERATE_COMPILED_GRADIENTS = "_XlaSeparateCompiledGradients"
+XLA_SEPARATE_COMPILED_GRADIENTS = "_XlaSeparateCompiledGradients"
 
 POLYMORPHIC_FUNCTION_ALLOWLIST = frozenset({
     API_IMPLEMENTS,
@@ -74,6 +75,7 @@ POLYMORPHIC_FUNCTION_ALLOWLIST = frozenset({
     IMPLEMENTS,
     INTS_ON_DEVICE,
     NO_INLINE,
+    RUNS_AT_MOST_ONCE,
     RUNTIME_CONSTANT_OPTIMIZATION,
     TF_DATA_FUNCTION,
     TIME_MAJOR,
@@ -113,7 +115,7 @@ MONOMORPHIC_FUNCTION_ALLOWLIST = frozenset().union(
         TFTRT_USE_IMPLICIT_BATCH,
         XLA_COMPILE_OPTIONAL,
         XLA_SCOPE,
-        XLA_SEPERATE_COMPILED_GRADIENTS,
+        XLA_SEPARATE_COMPILED_GRADIENTS,
     },
 )
 
