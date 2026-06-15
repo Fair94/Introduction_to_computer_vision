@@ -53,6 +53,10 @@ From heat map of Confusion Matrix is explained:
 We need further improvement in order to detect better the 3 tumoral forms: `mel`, `bcc` and `akiec`
 
 
+## First experiment : Data augmentation  
+In order to improve the model, I'm going to do data augmentation . New File with same base code.
+
+
 
 
 
