@@ -1,0 +1,17 @@
+Model Classification Report - exp03_dropout
+Test Accuracy: 71.54%
+Test Loss: 0.8327
+
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00        28
+         bcc       0.62      0.09      0.16        54
+         bkl       0.38      0.50      0.43       111
+          df       0.00      0.00      0.00        11
+         mel       0.40      0.28      0.33       111
+          nv       0.81      0.93      0.87       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.72       991
+   macro avg       0.32      0.26      0.25       991
+weighted avg       0.67      0.72      0.68       991

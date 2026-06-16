@@ -55,6 +55,28 @@ We need further improvement in order to detect better the 3 tumoral forms: `mel`
 
 ## First experiment : Data augmentation  
 In order to improve the model, I'm going to do data augmentation . New File with same base code.
+The purpose of Data augmentation is to reduce overfitting.
+After the first cycle of training with data augmentation,I've received the following Results:  
+
+Test Accuracy : 72.35%  
+Test Loss : 0.7934  
+### Performance analysis
+Even with data augmentation, The model has difficulty. This is caused because classes are unbalanced    
+#### NV class  
+This is the majority class  
+#### MEL  
+This is the class wher I want an high recall because It is the most dangeorus skin cancer cell. 
+#### DF and VASC  
+These are rare patology, ignored by the model  
+### General final observation with Data Augmentation  
+Only data augmentation does not resolve anything, going for other improvement
+![confusion matrix over data augmentation](./augmentation_results/exp02_aug_base_confusion_matrix.png)
+![training over data augmentation](./augmentation_results/exp02_aug_base_training_history.png)
+
+
+
+
+
 
 
 
