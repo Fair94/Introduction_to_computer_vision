@@ -71,7 +71,22 @@ These are rare patology, ignored by the model
 ### General final observation with Data Augmentation  
 Only data augmentation does not resolve anything, going for other improvement
 ![confusion matrix over data augmentation](./augmentation_results/exp02_aug_base_confusion_matrix.png)
-![training over data augmentation](./augmentation_results/exp02_aug_base_training_history.png)
+![training over data augmentation](./augmentation_results/exp02_aug_base_training_history.png)  
+
+### Dropout Regolarization  
+In this experiment, I've introduced a 0.5 dropout.
+This is needed in order to permit the model to generalize better.  
+
+#### Graph analysis  
+
+The gap between the curves is reduced  
+![training over dropout](./dropout_results/exp03_dropout_training_history.png)  
+The model begin to stop to memorize the train set  
+
+#### Performance and class imbalance  
+The model is more solid and stable, but we continue to have the unbalanced classes. 
+Maybe in the next session, I'm going to assign weight or add more layer.  
+
 
 
 
