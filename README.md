@@ -105,8 +105,45 @@ To fight the unbalanced classes, i've used a dictionary with class weights.
 This experiments has collapsed the model.   
 
 #### Failure analysis  
-I've used very heavy weights to unbalanced classes but the model has suffered from gradient explosion during backpropagation.   
+I've used very heavy weights to unbalanced classes but the model has suffered from gradient explosion during backpropagation.  
 
+### EXP6 : HYPERTUNING AND SOFT WEGHTS.  
+I've choosed the best model (dropout) and i've applied soft weights. I've reduced the learning rate.  
+
+### Results  
+ACCURACY: 47.93%
+TEST LOSS: 1.3247  
+
+#### PERFORMANCE ANALYSIS  
+Even if accuracy and test loss are not ideal, the model have high recall on malicious skin cancer cells.
+The model has started to recognize complex pattern  
+
+Mel  
+Recall from 0.28 to 0.5  
+
+I'm continuing to work on this model before shifting to a transfer learning model  
+
+
+### Experiment 7 : Clinical decision threshold  
+The previous model has used the softmax decision function. 
+For cancer diagnostic, I need to use other decision function. A false negative cost is higher than a false positive.
+I've allineed the model: if a mel class has a >15% probabiliy, the prediction is forced.  
+
+#### Results  
+Recall of melanoma up to 77%, precision lowered to 13%  
+
+#### Experiment Conclusion  
+In healthcare is better to have recall than precision 
+
+### Experiment 8: A more balanced approach with F1 score  
+This model is more balanced. 
+The model of experiment 7 is more focused over recall (more allarmistic).
+This model instead save the weight only where the armonic mean was better  
+
+### Results  
+Accuracy: 65.09%
+Macro f1-score: 0.29
+mel: precision 27%, recall 32%, f1 0.3
 
 
 

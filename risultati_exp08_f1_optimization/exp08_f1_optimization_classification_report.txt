@@ -1,0 +1,17 @@
+Model Classification Report - exp08_f1_optimization
+Addestrato ottimizzando la Macro F1-Score
+Test Accuracy: 65.09%
+
+              precision    recall  f1-score   support
+
+       akiec       0.18      0.36      0.24        28
+         bcc       0.27      0.37      0.31        54
+         bkl       0.37      0.33      0.35       111
+          df       0.00      0.00      0.00        11
+         mel       0.27      0.32      0.30       111
+          nv       0.86      0.81      0.83       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.65       991
+   macro avg       0.28      0.31      0.29       991
+weighted avg       0.67      0.65      0.66       991

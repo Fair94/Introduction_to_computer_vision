@@ -1,0 +1,17 @@
+Model Classification Report - exp07_clinical_threshold
+Soglia Melanoma Applicata: 15.0%
+Test Accuracy Base: 57.72%
+
+              precision    recall  f1-score   support
+
+       akiec       0.16      0.54      0.24        28
+         bcc       0.19      0.28      0.22        54
+         bkl       0.37      0.22      0.27       111
+          df       0.00      0.00      0.00        11
+         mel       0.13      0.77      0.23       111
+          nv       0.95      0.16      0.27       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.25       991
+   macro avg       0.26      0.28      0.18       991
+weighted avg       0.71      0.25      0.26       991
