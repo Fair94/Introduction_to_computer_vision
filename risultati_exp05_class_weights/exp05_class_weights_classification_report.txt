@@ -1,0 +1,17 @@
+Model Classification Report - exp05_class_weights
+Test Accuracy: 5.45%
+Test Loss: 1.9497
+
+              precision    recall  f1-score   support
+
+       akiec       0.00      0.00      0.00        28
+         bcc       0.05      1.00      0.10        54
+         bkl       0.00      0.00      0.00       111
+          df       0.00      0.00      0.00        11
+         mel       0.00      0.00      0.00       111
+          nv       0.00      0.00      0.00       668
+        vasc       0.00      0.00      0.00         8
+
+    accuracy                           0.05       991
+   macro avg       0.01      0.14      0.01       991
+weighted avg       0.00      0.05      0.01       991

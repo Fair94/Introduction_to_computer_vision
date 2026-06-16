@@ -88,6 +88,28 @@ The model is more solid and stable, but we continue to have the unbalanced class
 Maybe in the next session, I'm going to assign weight or add more layer.  
 
 
+### Deeper and wider approach  
+I've added some filter to the new model in order to see if more estractive capacity was useful.  
+
+#### Results  
+Accuracy:71.4%  
+Test Loss :  0.8462  
+#### Performance analysis  
+having more complexity does not resolve the problem, it degrades the model  
+
+mel  : recall is worst than dropout exp  
+Conclusion: I need to balance data or give weight to class
+
+#### Class weights : the disaster xD  
+To fight the unbalanced classes, i've used a dictionary with class weights.
+This experiments has collapsed the model.   
+
+#### Failure analysis  
+I've used very heavy weights to unbalanced classes but the model has suffered from gradient explosion during backpropagation.   
+
+
+
+
 
 
 
