@@ -146,6 +146,22 @@ Macro f1-score: 0.29
 mel: precision 27%, recall 32%, f1 0.3
 
 
+### Experiment 9: Transfer Learning with MobileNetV2  
+As a addictional experiment, i've used MobileNetV2 as a baseline model.
+
+
+#### Performance  
+Accuracy Test : 70.94%  
+F1 Score : 0.36  
+
+The model is a pretrained one and show its own power.
+vasc recall 62% wit 0.42 f1 score  
+
+mel precision 45%  
+
+Stable curve
+
+
 
 
 
