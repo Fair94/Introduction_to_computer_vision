@@ -161,6 +161,17 @@ mel precision 45%
 
 Stable curve
 
+### Experiment 8.1 : Custom model tweaked (Stabilization and augmentation)
+For this experiment, I've used the custom model created during experiment 8.
+I've used some more sophisticated technique, such as Random Contrast, Learning rate scheduler and early stopping.
+
+#### Test result  
+Accuracy: 69.22%  
+AVG f1-score: 0.32  
+
+#### Performance analysis  
+This is one of the best model trained so far for accuracy and diagnostic power.
+It generalize well, but fail with undersampled classes. For these i need transfer learning
 
 
 

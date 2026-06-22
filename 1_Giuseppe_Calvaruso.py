@@ -14,7 +14,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
 
     Loading dataset: train, valid and test. Instead of using an online dataset, i'm using an offline one
     """
-    print("Tentativo di caricamento del dataset di lesioni cutanee...")
+    print("Loading dataset")
     try:
         train_dir = os.path.join(base_dir, 'train')
         valid_dir = os.path.join(base_dir, 'valid')
