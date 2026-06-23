@@ -11,7 +11,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
     """
     Loading dataset: train, valid and test. Instead of using an online dataset, i'm using an offline one
     """
-    print("Tentativo di caricamento del dataset di lesioni cutanee...")
+    print("Attempting to load skin lesions dataset...")
     try:
         train_dir = os.path.join(base_dir, 'train')
         valid_dir = os.path.join(base_dir, 'valid')
@@ -57,30 +57,30 @@ if __name__ == "__main__":
     RESULTS_DIR = "augmentation_results"
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    # --- VARIABILE CRITICA: Cambiala ad ogni nuovo esperimento per non sovrascrivere nulla ---
+    # --- CRITICAL VARIABLE: Change it every new experiment for not overwrite nothing ---
     EXP_NAME = "exp02_aug_base"
 
     train_ds, valid_ds, test_ds, class_names = load_dataset(DATASET_PATH)
 
-    # --- 1. BLOCCO DI DATA AUGMENTATION ---
+    # --- 1. DATA AUGMENTATION BLOCK ---
     data_augmentation = Sequential([
         layers.RandomFlip("horizontal_and_vertical"),
         layers.RandomRotation(0.2),
         layers.RandomZoom(0.2),
     ], name="data_augmentation")
 
-    # --- 2. NUOVA ARCHITETTURA MODELLO ---
+    # --- 2. NEW MODEL ARCHITECTURE ---
     model = Sequential([
-        # CORREZIONE 1: Aggiunto input shape esplicito come primissimo layer
+        # CORRECTION 1: Added explicit input shape as very first layer
         layers.Input(shape=(224, 224, 3)),
         
-        # Applica l'augmentation solo in fase di training
+        # Apply augmentation only in training phase
         data_augmentation,
         
-        # Normalizzazione (senza input_shape qui)
+        # Normalization (without input_shape here)
         layers.Rescaling(1./255),
         
-        # Rete convoluzionale (stessa architettura della baseline per confronto equo)
+        # Convolutional network (same architecture of baseline for a fair comparison)
         layers.Conv2D(16, 3, padding='same', activation='relu'),
         layers.MaxPooling2D(),
         layers.Conv2D(32, 3, padding='same', activation='relu'),
@@ -93,17 +93,17 @@ if __name__ == "__main__":
         layers.Dense(7, activation='softmax') 
     ])
 
-    # Compilazione
+    # Compiling
     model.compile(
         optimizer='adam',
         loss='categorical_crossentropy', 
         metrics=['accuracy']
     )
 
-    # --- 3. ADDESTRAMENTO ---
-    epochs = 20 # Aumentato perché l'augmentation richiede più epoche per convergere
+    # --- 3. TRAINING ---
+    epochs = 20 # Increased because augmentation need more epochs to converge
     
-    print(f"\nInizio addestramento con Data Augmentation (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting training with Data Augmentation (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         verbose=1 
     )
 
-    # --- 4. VALUTAZIONE E SALVATAGGIO ---
+    # --- 4. VALUATION AND SAVING ---
     loss, accuracy = model.evaluate(test_ds, verbose=0)
     
     y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.tight_layout()
-    # CORREZIONE 2: Nomi file dinamici basati su EXP_NAME
+    # CORRECTION 2: Dinamic file names based on EXP_NAME
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_confusion_matrix.png"))
     plt.close()
 
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         f.write(f"Test Loss: {loss:.4f}\n\n")
         f.write(report)
 
-    # Salvataggio Grafici
+    # Saving Graphs
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
     plt.plot(history.history['accuracy'], label='Train Accuracy')
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
     plt.close()
 
-    # Salvataggio Modello
+    # Saving Model
     MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
     model.save(MODEL_SAVE_PATH)
-    print(f"\nModello {EXP_NAME} salvato in {MODEL_SAVE_PATH}")
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")
