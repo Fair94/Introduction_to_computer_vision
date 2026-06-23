@@ -98,6 +98,7 @@ model = Sequential([
     # Flattening and classification
     layers.Flatten(),
     layers.Dense(128, activation='relu'),
+    # 7 is the numbers of classes of tumors
     layers.Dense(7, activation='softmax') 
 ])
 
@@ -121,6 +122,8 @@ history = model.fit(
 
 #  First confusion matrix for a 10 epochs model
 print("\nGenerating Confusion Matrix at 10 Epochs...")
+
+# need to flatten the true label for comparing with prediction
 y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
 y_pred_10 = model.predict(test_ds)
 y_pred_classes_10 = np.argmax(y_pred_10, axis=1)
@@ -141,7 +144,7 @@ plt.close()
 print("\nGenerating and saving Classification Report...")
 
 # Generating report for a 10 epoch model 
-# Calcola loss e accuracy sul set di test prima di scriverli nel report
+# Calculate loss and accuracy on test set before to write them in the report
 loss, accuracy = model.evaluate(test_ds, verbose=0)
 report = classification_report(y_true_flat, y_pred_classes_10, target_names=class_names)
 
@@ -164,6 +167,7 @@ print("Model saved successfully.")
 
 
 # Training with 20 epoch 
+# i want to see if more epochs do better or cause overfitting
 print("\n--- Continuing Training: Epochs 11-20 ---")
 history_20 = model.fit(
     train_ds,
@@ -188,7 +192,7 @@ plt.tight_layout()
 plt.savefig(os.path.join(RESULTS_DIR, "confusion_matrix_20_epochs.png"))
 plt.close()
 
-print(f"\nEntrambe le matrici sono state salvate nella cartella '{RESULTS_DIR}'!")
+print(f"\nBoth matrix are saved in the folder '{RESULTS_DIR}'!")
 
 
 
