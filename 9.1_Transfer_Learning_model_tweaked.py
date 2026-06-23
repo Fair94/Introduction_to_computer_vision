@@ -11,7 +11,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset...")
+    print("Attempting to load dataset...")
     try:
         train_ds = tf.keras.utils.image_dataset_from_directory(
             os.path.join(base_dir, 'train'), image_size=(img_height, img_width),
@@ -27,7 +27,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         )
         return train_ds, valid_ds, test_ds, train_ds.class_names
     except Exception as e:
-        print(f"Errore di caricamento: {e}")
+        print(f"Loading error: {e}")
         return None, None, None, None
 
 def get_soft_class_weights(train_ds):
@@ -43,7 +43,7 @@ def get_soft_class_weights(train_ds):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILI ESPERIMENTI ---
+    # --- EXPERIMENTS VARIABLES ---
     EXP_OLD = "exp09_transfer_learning"
     OLD_MODEL_PATH = f"risultati_{EXP_OLD}/{EXP_OLD}_model.h5"
     
@@ -55,16 +55,16 @@ if __name__ == "__main__":
     train_ds, valid_ds, test_ds, class_names = load_dataset(DATASET_PATH)
     soft_weights = get_soft_class_weights(train_ds)
 
-    # 1. Ricreiamo l'esatta architettura dell'Exp 9
+    # 1. We recreate the exact architecture of Exp 9
     data_augmentation = Sequential([
         layers.RandomFlip("horizontal_and_vertical"),
         layers.RandomRotation(0.2),
         layers.RandomZoom(0.2),
-        layers.RandomContrast(0.1) # Aggiunto il contrasto clinico
+        layers.RandomContrast(0.1) # Added clinical contrast
     ], name="data_augmentation")
 
     base_model = MobileNetV2(input_shape=(224, 224, 3), include_top=False, weights='imagenet')
-    base_model.trainable = False # Per ora lo teniamo congelato
+    base_model.trainable = False # For now we keep it freezed
 
     model = Sequential([
         layers.Input(shape=(224, 224, 3)),
@@ -76,55 +76,55 @@ if __name__ == "__main__":
         layers.Dense(7, activation='softmax') 
     ])
 
-    # 2. Carichiamo i pesi già addestrati (La nostra testa non è più casuale!)
-    print(f"\nCaricamento pesi dell'Esperimento 9 da: {OLD_MODEL_PATH}")
+    # 2. We load the already trained weights (Our head is not random anymore!)
+    print(f"\nLoading weights of Experiment 9 from: {OLD_MODEL_PATH}")
     model.load_weights(OLD_MODEL_PATH)
-    print("Pesi caricati con successo.")
+    print("Weights loaded successfully.")
 
-    # --- IL CUORE DEL FINE-TUNING ---
-    print("\nInizio procedura di Unfreezing...")
-    # Sblocchiamo il base_model
+    # --- THE CORE OF FINE-TUNING ---
+    print("\nStarting Unfreezing procedure...")
+    # We unfreeze the base_model
     base_model.trainable = True
 
-    # MobileNetV2 ha 154 layers. Ne sblocchiamo solo gli ultimi 30.
-    # Così manteniamo la capacità di riconoscere linee/curve (primi layer)
-    # ma adattiamo la capacità di riconoscere texture complesse (ultimi layer).
+    # MobileNetV2 have 154 layers. We unfreeze only the last 30.
+    # So we keep the capacity to recognize lines/curves (first layers)
+    # but we adapt the capacity to recognize complex textures (last layers).
     fine_tune_at = len(base_model.layers) - 30
 
     for layer in base_model.layers[:fine_tune_at]:
         layer.trainable = False
 
-    # 3. Ri-compiliamo il modello con un Learning Rate MICROSCOPICO
-    # Se usassimo il LR standard, distruggeremmo i pesi di Google in un istante.
+    # 3. We re-compile the model with a MICROSCOPIC Learning Rate
+    # If we use standard LR, we will destroy the Google weights in a moment.
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5), # <--- 0.00001
         loss='categorical_crossentropy', 
         metrics=['accuracy', tf.keras.metrics.F1Score(average='macro', name='f1_score')]
     )
 
-    # 4. Impostiamo i Guardiani (Callbacks)
+    # 4. We setup the Guardians (Callbacks)
     early_stopping = EarlyStopping(
         monitor='val_f1_score', mode='max', patience=5, restore_best_weights=True, verbose=1
     )
     
-    # Salviamo ad ogni miglioramento della F1
+    # We save every time the F1 improve
     checkpoint = ModelCheckpoint(
         filepath=MODEL_SAVE_PATH, monitor='val_f1_score', mode='max', save_best_only=True, verbose=0
     )
 
-    print(f"\nInizio Fine-Tuning Avanzato (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting Advanced Fine-Tuning (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
-        epochs=15, # Non servono troppe epoche per il fine-tuning
+        epochs=15, # We don't need too much epochs for fine-tuning
         class_weight=soft_weights,
         callbacks=[early_stopping, checkpoint],
         verbose=1 
     )
 
-    # --- VALUTAZIONE FINALE ---
-    print("\nValutazione sul Test Set...")
-    model.load_weights(MODEL_SAVE_PATH) # Ricarica il migliore
+    # --- FINAL VALUATION ---
+    print("\nValuation on Test Set...")
+    model.load_weights(MODEL_SAVE_PATH) # Reload the best one
     loss, accuracy, f1 = model.evaluate(test_ds, verbose=0)
     
     y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
@@ -171,4 +171,4 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
     plt.close()
-    print("Salvataggi completati.")
+    print("Savings completed.")
