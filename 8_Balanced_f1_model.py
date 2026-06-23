@@ -10,7 +10,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset...")
+    print("Attempting to load dataset...")
     try:
         train_ds = tf.keras.utils.image_dataset_from_directory(
             os.path.join(base_dir, 'train'), image_size=(img_height, img_width),
@@ -26,7 +26,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         )
         return train_ds, valid_ds, test_ds, train_ds.class_names
     except Exception as e:
-        print(f"Errore di caricamento: {e}")
+        print(f"Loading error: {e}")
         return None, None, None, None
 
 def get_soft_class_weights(train_ds):
@@ -42,7 +42,7 @@ def get_soft_class_weights(train_ds):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE ESPERIMENTO 8 ---
+    # --- EXPERIMENT 8 VARIABLE ---
     EXP_NAME = "exp08_f1_optimization"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -73,38 +73,38 @@ if __name__ == "__main__":
         layers.Dense(7, activation='softmax') 
     ])
 
-    # --- IL CUORE DELL'ESPERIMENTO: METRICA F1 E CHECKPOINT ---
-    # Aggiungiamo la F1-Score (Macro) tra le metriche di monitoraggio
+    # --- THE CORE OF THE EXPERIMENT: F1 METRIC AND CHECKPOINT ---
+    # We add the F1-Score (Macro) inside our monitoring metrics
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
         loss='categorical_crossentropy', 
         metrics=['accuracy', tf.keras.metrics.F1Score(average='macro', name='f1_score')]
     )
 
-    # Creiamo un "Guardiano" che salva il modello SOLO quando la F1-Score di validazione sale
+    # We create a "Guardian" that save the model ONLY when the validation F1-Score go up
     checkpoint = ModelCheckpoint(
         filepath=MODEL_SAVE_PATH,
-        monitor='val_f1_score',  # Monitora la F1-score sul dataset di validazione
-        mode='max',              # Vogliamo che questo valore sia il massimo possibile
-        save_best_only=True,     # Salva solo se c'è un miglioramento reale
+        monitor='val_f1_score',  # Monitor the F1-score on the validation dataset
+        mode='max',              # We want this value to be the maximum possible
+        save_best_only=True,     # Save only if there's a real improvement
         verbose=1
     )
 
-    print(f"\nInizio addestramento F1-Optimization (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting training F1-Optimization (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
         epochs=20,
         class_weight=soft_weights,
-        callbacks=[checkpoint], # Inseriamo il guardiano
+        callbacks=[checkpoint], # We insert the guardian
         verbose=1 
     )
 
-    # Alla fine, ricarichiamo esplicitamente il modello migliore salvato dal checkpoint
-    print("Caricamento dei pesi del modello con la miglior F1-Score...")
+    # At the end, we reload explicitly the best model saved by the checkpoint
+    print("Loading weights of the model with the best F1-Score...")
     model.load_weights(MODEL_SAVE_PATH)
 
-    # --- VALUTAZIONE (Usando la logica standard Argmax) ---
+    # --- VALUATION (Using standard Argmax logic) ---
     loss, accuracy, f1 = model.evaluate(test_ds, verbose=0)
     
     y_true_flat = np.concatenate([y for x, y in test_ds], axis=0)
@@ -113,11 +113,11 @@ if __name__ == "__main__":
     y_pred = model.predict(test_ds)
     y_pred_classes = np.argmax(y_pred, axis=1)
 
-    # Salvataggi...
+    # Savings...
     cm = confusion_matrix(y_true_classes, y_pred_classes)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
-    plt.title(f'Model Confusion Matrix - {EXP_NAME} (Ottimizzato per F1)')
+    plt.title(f'Model Confusion Matrix - {EXP_NAME} (Optimized for F1)')
     plt.ylabel('True Label')
     plt.xlabel('Predicted Label')
     plt.tight_layout()
@@ -128,11 +128,11 @@ if __name__ == "__main__":
     report_path = os.path.join(RESULTS_DIR, f"{EXP_NAME}_classification_report.txt")
     with open(report_path, "w") as f:
         f.write(f"Model Classification Report - {EXP_NAME}\n")
-        f.write(f"Addestrato ottimizzando la Macro F1-Score\n")
+        f.write(f"Trained optimizing Macro F1-Score\n")
         f.write(f"Test Accuracy: {accuracy * 100:.2f}%\n\n")
         f.write(report)
 
-    # Grafico History: aggiungiamo la F1-Score
+    # History Graph: we add the F1-Score
     plt.figure(figsize=(15, 5))
     plt.subplot(1, 3, 1)
     plt.plot(history.history['accuracy'], label='Train Acc')
@@ -155,4 +155,4 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
     plt.close()
-    print("Salvataggi completati.")
+    print("Savings completed.")
