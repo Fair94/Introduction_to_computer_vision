@@ -10,7 +10,7 @@ from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLRO
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset...")
+    print("Attempting to load dataset...")
     try:
         train_ds = tf.keras.utils.image_dataset_from_directory(
             os.path.join(base_dir, 'train'), image_size=(img_height, img_width),
@@ -26,7 +26,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         )
         return train_ds, valid_ds, test_ds, train_ds.class_names
     except Exception as e:
-        print(f"Errore di caricamento: {e}")
+        print(f"Loading error: {e}")
         return None, None, None, None
 
 def get_soft_class_weights(train_ds):
@@ -42,7 +42,7 @@ def get_soft_class_weights(train_ds):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE ESPERIMENTO 8.1 ---
+    # --- EXPERIMENT 8.1 VARIABLE ---
     EXP_NAME = "exp08.1_custom_tweaked"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     train_ds, valid_ds, test_ds, class_names = load_dataset(DATASET_PATH)
     soft_weights = get_soft_class_weights(train_ds)
 
-    # TWEAK 1: Aggiunto RandomContrast per evidenziare i bordi delle lesioni
+    # TWEAK 1: Added RandomContrast for highlight the lesions borders
     data_augmentation = Sequential([
         layers.RandomFlip("horizontal_and_vertical"),
         layers.RandomRotation(0.2),
@@ -81,18 +81,18 @@ if __name__ == "__main__":
         metrics=['accuracy', tf.keras.metrics.F1Score(average='macro', name='f1_score')]
     )
 
-    # --- TWEAK 2 & 3: I NUOVI GUARDIANI (CALLBACKS) ---
+    # --- TWEAK 2 & 3: THE NEW GUARDIANS (CALLBACKS) ---
     
-    # 1. Early Stopping: Si ferma se per 8 epoche la val_f1_score non migliora
+    # 1. Early Stopping: It stop if val_f1_score don't improve for 8 epochs
     early_stopping = EarlyStopping(
         monitor='val_f1_score',
         mode='max',
         patience=8,
-        restore_best_weights=True, # Ricarica in automatico la versione migliore!
+        restore_best_weights=True, # Automatic reload the best version!
         verbose=1
     )
 
-    # 2. Reduce LR on Plateau: Dimezza il passo se si incastra per 3 epoche
+    # 2. Reduce LR on Plateau: Divide by half the step if it get stuck for 3 epochs
     lr_scheduler = ReduceLROnPlateau(
         monitor='val_f1_score',
         mode='max',
@@ -102,20 +102,20 @@ if __name__ == "__main__":
         verbose=1
     )
 
-    print(f"\nInizio addestramento Tweaked (Esperimento: {EXP_NAME})...")
-    # Abbiamo alzato le epoche a 40, tanto si fermerà da solo quando avrà finito di imparare
+    print(f"\nStarting Tweaked training (Experiment: {EXP_NAME})...")
+    # We raised epochs to 40, anyway it will stop by himself when finished to learn
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
         epochs=40, 
         class_weight=soft_weights,
-        callbacks=[early_stopping, lr_scheduler], # Inseriamo l'intelligenza di gestione
+        callbacks=[early_stopping, lr_scheduler], # We insert the management intelligence
         verbose=1 
     )
 
-    # --- VALUTAZIONE (I pesi migliori sono già stati ripristinati da EarlyStopping) ---
+    # --- VALUATION (The best weights are already restored from EarlyStopping) ---
     model.save(MODEL_SAVE_PATH)
-    print(f"Modello finale salvato in {MODEL_SAVE_PATH}")
+    print(f"Final model saved in {MODEL_SAVE_PATH}")
 
     loss, accuracy, f1 = model.evaluate(test_ds, verbose=0)
     
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     y_pred = model.predict(test_ds)
     y_pred_classes = np.argmax(y_pred, axis=1)
 
-    # Salvataggi standard...
+    # Standard savings...
     cm = confusion_matrix(y_true_classes, y_pred_classes)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         f.write(f"Test Accuracy: {accuracy * 100:.2f}%\n\n")
         f.write(report)
 
-    # Grafico History aggiornato per mostrare anche il Learning Rate (opzionale ma figo da vedere)
+    # Updated History Graph to show also Learning Rate (optional but cool to see)
     plt.figure(figsize=(15, 5))
     plt.subplot(1, 3, 1)
     plt.plot(history.history['accuracy'], label='Train Acc')
@@ -167,4 +167,4 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
     plt.close()
-    print("Salvataggi completati.")
+    print("Savings completed.")
