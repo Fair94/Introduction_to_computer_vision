@@ -10,7 +10,7 @@ from tensorflow.keras.applications import MobileNetV2
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset...")
+    print("Attempting to load dataset...")
     try:
         train_ds = tf.keras.utils.image_dataset_from_directory(
             os.path.join(base_dir, 'train'), image_size=(img_height, img_width),
@@ -26,10 +26,10 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         )
         return train_ds, valid_ds, test_ds, train_ds.class_names
     except Exception as e:
-        print(f"Errore di caricamento: {e}")
+        print(f"Loading error: {e}")
         return None, None, None, None
 
-# Usiamo i pesi "dolci" per aiutare il modello sulle classi rare senza farlo esplodere
+# We use "soft" weights for help the model on rare classes without make it explode
 def get_soft_class_weights(train_ds):
     y_train = np.concatenate([y for x, y in train_ds], axis=0)
     y_train_indices = np.argmax(y_train, axis=1)
@@ -43,7 +43,7 @@ def get_soft_class_weights(train_ds):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE ESPERIMENTO 9 ---
+    # --- EXPERIMENT 9 VARIABLE ---
     EXP_NAME = "exp09_transfer_learning"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -57,28 +57,28 @@ if __name__ == "__main__":
         layers.RandomZoom(0.2),
     ], name="data_augmentation")
 
-    # --- TRANSFER LEARNING: IL CERVELLO DI GOOGLE ---
-    print("\nScaricamento pesi MobileNetV2...")
+    # --- TRANSFER LEARNING: THE GOOGLE'S BRAIN ---
+    print("\nDownloading MobileNetV2 weights...")
     base_model = MobileNetV2(
         input_shape=(224, 224, 3), 
-        include_top=False, # Tagliamo la testa originale (che serviva per 1000 classi)
-        weights='imagenet' # Usiamo l'esperienza di ImageNet
+        include_top=False, # We cut the original head (that was used for 1000 classes)
+        weights='imagenet' # We use the ImageNet experience
     )
     
-    # CONGELIAMO i pesi: non vogliamo distruggere la conoscenza pregressa di Google
+    # We FREEZE the weights: we don't want to destroy the previous Google knowledge
     base_model.trainable = False 
 
-    # Assemblaggio dell'architettura finale
+    # Assembling the final architecture
     model = Sequential([
         layers.Input(shape=(224, 224, 3)),
         data_augmentation,
         
-        # Preprocessing specifico richiesto da MobileNetV2 (pixel da -1 a 1)
+        # Specific preprocessing required by MobileNetV2 (pixels from -1 to 1)
         layers.Rescaling(1./127.5, offset=-1),
         
-        base_model, # Inseriamo il blocco gigante di MobileNet
+        base_model, # We insert the giant MobileNet block
         
-        # Nuova "Testa" personalizzata per il nostro dataset medico
+        # New customized "Head" for our medical dataset
         layers.GlobalAveragePooling2D(),
         layers.Dropout(0.3),
         layers.Dense(7, activation='softmax') 
@@ -92,9 +92,9 @@ if __name__ == "__main__":
 
     epochs = 20
     
-    print(f"\nInizio addestramento Transfer Learning (Esperimento: {EXP_NAME})...")
-    # Nota: essendo base_model congelato, stiamo addestrando SOLO l'ultimo layer. 
-    # Sarà sorprendentemente veloce!
+    print(f"\nStarting Transfer Learning training (Experiment: {EXP_NAME})...")
+    # Note: since base_model is frozen, we are training ONLY the last layer. 
+    # It will be surprisingly fast!
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         verbose=1 
     )
 
-    # --- VALUTAZIONE E SALVATAGGI ---
+    # --- VALUATION AND SAVINGS ---
     loss, accuracy = model.evaluate(test_ds, verbose=0)
     
     y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
@@ -146,4 +146,4 @@ if __name__ == "__main__":
 
     MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
     model.save(MODEL_SAVE_PATH)
-    print(f"\nModello {EXP_NAME} salvato in {MODEL_SAVE_PATH}")
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")
