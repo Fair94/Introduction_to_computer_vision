@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset di lesioni cutanee...")
+    print("Attempting to load skin lesions dataset...")
     try:
         train_dir = os.path.join(base_dir, 'train')
         valid_dir = os.path.join(base_dir, 'valid')
@@ -36,36 +36,36 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
         print(f"An error occurred during load: {e}")
         return None, None, None, None
 
-# --- HYPERTUNING: FUNZIONE PER I PESI "DOLCI" ---
+# --- HYPERTUNING: FUNCTION FOR "SOFT" WEIGHTS ---
 def get_soft_class_weights(train_ds):
     y_train = np.concatenate([y for x, y in train_ds], axis=0)
     y_train_indices = np.argmax(y_train, axis=1)
     
-    # Calcolo pesi puri (quelli del disastro exp05)
+    # Calculate pure weights (the ones from the exp05 disaster)
     cw = class_weight.compute_class_weight(
         class_weight='balanced',
         classes=np.unique(y_train_indices),
         y=y_train_indices
     )
     
-    # Tuning: Radice quadrata e tetto massimo a 4.0
-    # In questo modo diamo importanza alle minoranze ma evitiamo l'esplosione dei gradienti
+    # Tuning: Square root and max ceiling at 4.0
+    # In this way we give importance to minorities but we prevent gradient explosion
     soft_cw = {i: min(np.sqrt(weight), 4.0) for i, weight in enumerate(cw)}
     return soft_cw
 
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE ESPERIMENTO 6 ---
+    # --- EXPERIMENT 6 VARIABLE ---
     EXP_NAME = "exp06_hypertuning"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     train_ds, valid_ds, test_ds, class_names = load_dataset(DATASET_PATH)
 
-    print("\nCalcolo dei Soft Class Weights per l'Hypertuning...")
+    print("\nCalculating Soft Class Weights for Hypertuning...")
     soft_weights = get_soft_class_weights(train_ds)
-    print(f"Pesi addolciti applicati: {soft_weights}")
+    print(f"Soft weights applied: {soft_weights}")
 
     data_augmentation = Sequential([
         layers.RandomFlip("horizontal_and_vertical"),
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         layers.RandomZoom(0.2),
     ], name="data_augmentation")
 
-    # --- ARCHITETTURA (Basata sul nostro modello migliore: Exp 3) ---
+    # --- ARCHITECTURE (Based on our best model: Exp 3) ---
     model = Sequential([
         layers.Input(shape=(224, 224, 3)),
         data_augmentation,
@@ -89,14 +89,14 @@ if __name__ == "__main__":
         layers.Flatten(),
         layers.Dense(128, activation='relu'),
         
-        # HYPERTUNING: Dropout leggermente abbassato (da 0.5 a 0.4)
+        # HYPERTUNING: Dropout slightly lowered (from 0.5 to 0.4)
         layers.Dropout(0.4), 
         
         layers.Dense(7, activation='softmax') 
     ])
 
     # --- HYPERTUNING: LEARNING RATE ---
-    # Invece del default (0.001), usiamo 0.0001. Passi lenti e sicuri.
+    # Instead of default (0.001), we use 0.0001. Slow and safe steps.
     custom_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
 
     model.compile(
@@ -105,16 +105,16 @@ if __name__ == "__main__":
         metrics=['accuracy']
     )
 
-    # Avendo abbassato il Learning Rate, potremmo aver bisogno di più epoche,
-    # ma teniamo 20 per fare un confronto alla pari con gli altri esperimenti.
+    # Having lowered the Learning Rate, we maybe need more epochs,
+    # but we keep 20 to make a fair comparison with the other experiments.
     epochs = 20
     
-    print(f"\nInizio addestramento Hypertuning (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting Hypertuning training (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
         epochs=epochs,
-        class_weight=soft_weights, # Applichiamo i pesi calibrati
+        class_weight=soft_weights, # We apply the calibrated weights
         verbose=1 
     )
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     y_pred = model.predict(test_ds)
     y_pred_classes = np.argmax(y_pred, axis=1)
 
-    # Salvataggio Confusion Matrix
+    # Saving Confusion Matrix
     cm = confusion_matrix(y_true_flat, y_pred_classes)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_confusion_matrix.png"))
     plt.close()
 
-    # Salvataggio Classification Report
+    # Saving Classification Report
     report = classification_report(y_true_flat, y_pred_classes, target_names=class_names)
     report_path = os.path.join(RESULTS_DIR, f"{EXP_NAME}_classification_report.txt")
     with open(report_path, "w") as f:
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         f.write(f"Test Loss: {loss:.4f}\n\n")
         f.write(report)
 
-    # Salvataggio Grafici History
+    # Saving History Graphs
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
     plt.plot(history.history['accuracy'], label='Train Accuracy')
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
     plt.close()
 
-    # Salvataggio Modello
+    # Saving Model
     MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
     model.save(MODEL_SAVE_PATH)
-    print(f"\nModello {EXP_NAME} salvato in {MODEL_SAVE_PATH}")
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")
