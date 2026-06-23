@@ -142,4 +142,15 @@ if __name__ == "__main__":
     plt.plot(history.history['loss'], label='Train Loss')
     plt.plot(history.history['val_loss'], label='Validation Loss')
     plt.title(f'{EXP_NAME}: Model Loss')
-    plt.ylabel('
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
+    plt.close()
+
+    # Saving Model
+    MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
+    model.save(MODEL_SAVE_PATH)
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")

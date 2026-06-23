@@ -102,4 +102,59 @@ if __name__ == "__main__":
         train_ds,
         validation_data=valid_ds,
         epochs=epochs,
-        class_weight=class_weights_dict)
+        class_weight=class_weights_dict, # <--- THE CORE OF THE EXPERIMENT
+        verbose=1 
+    )
+
+    loss, accuracy = model.evaluate(test_ds, verbose=0)
+    
+    y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
+    y_pred = model.predict(test_ds)
+    y_pred_classes = np.argmax(y_pred, axis=1)
+
+    # Saving Confusion Matrix
+    cm = confusion_matrix(y_true_flat, y_pred_classes)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    plt.title(f'Model Confusion Matrix - {EXP_NAME}')
+    plt.ylabel('True Label')
+    plt.xlabel('Predicted Label')
+    plt.tight_layout()
+    plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_confusion_matrix.png"))
+    plt.close()
+
+    # Saving Classification Report
+    report = classification_report(y_true_flat, y_pred_classes, target_names=class_names)
+    report_path = os.path.join(RESULTS_DIR, f"{EXP_NAME}_classification_report.txt")
+    with open(report_path, "w") as f:
+        f.write(f"Model Classification Report - {EXP_NAME}\n")
+        f.write(f"Test Accuracy: {accuracy * 100:.2f}%\n")
+        f.write(f"Test Loss: {loss:.4f}\n\n")
+        f.write(report)
+
+    # Saving History Graphs
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Train Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title(f'{EXP_NAME}: Model Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Train Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title(f'{EXP_NAME}: Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
+    plt.close()
+
+    # Saving Model
+    MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
+    model.save(MODEL_SAVE_PATH)
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")

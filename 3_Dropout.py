@@ -144,4 +144,32 @@ if __name__ == "__main__":
     with open(report_path, "w") as f:
         f.write(f"Model Classification Report - {EXP_NAME}\n")
         f.write(f"Test Accuracy: {accuracy * 100:.2f}%\n")
-        f.write(f"Test Loss: {loss:.4f}\n\
+        f.write(f"Test Loss: {loss:.4f}\n\n")
+        f.write(report)
+
+    # Saving Graphs
+    plt.figure(figsize=(12, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Train Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title(f'{EXP_NAME}: Model Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Train Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title(f'{EXP_NAME}: Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
+    plt.close()
+
+    # Saving Model
+    MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
+    model.save(MODEL_SAVE_PATH)
+    print(f"\nModel {EXP_NAME} saved in {MODEL_SAVE_PATH}")
