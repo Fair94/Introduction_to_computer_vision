@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 from sklearn.metrics import classification_report, confusion_matrix
 
 def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
-    print("Tentativo di caricamento del dataset di lesioni cutanee...")
+    print("Attempting to load skin lesions dataset...")
     try:
         train_dir = os.path.join(base_dir, 'train')
         valid_dir = os.path.join(base_dir, 'valid')
@@ -52,7 +52,7 @@ def get_soft_class_weights(train_ds):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE ESPERIMENTO 7 ---
+    # --- EXPERIMENT 7 VARIABLE ---
     EXP_NAME = "exp07_clinical_threshold"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         layers.RandomZoom(0.2),
     ], name="data_augmentation")
 
-    # Manteniamo la struttura ottimizzata dell'Exp 6
+    # We keep the optimized structure of Exp 6
     model = Sequential([
         layers.Input(shape=(224, 224, 3)),
         data_augmentation,
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     custom_optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
     model.compile(optimizer=custom_optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-    print(f"\nInizio addestramento (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting training (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds, validation_data=valid_ds,
         epochs=20, class_weight=soft_weights, verbose=1 
@@ -96,27 +96,27 @@ if __name__ == "__main__":
 
     loss, accuracy = model.evaluate(test_ds, verbose=0)
     
-    # Estraiamo l'indice della classe melanoma ('mel') dalla lista dei nomi
+    # Extracting the index of melanoma class ('mel') from the names list
     mel_index = class_names.index('mel')
     
     y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
     
-    # Otteniamo le PROBABILITÀ grezze per tutte le 7 classi
+    # We get the raw PROBABILITIES for all the 7 classes
     y_pred_probs = model.predict(test_ds)
     
-    # Partiamo con la decisione standard (quella con la % più alta)
+    # We start with standard decision (the one with highest %)
     y_pred_classes = np.argmax(y_pred_probs, axis=1)
 
-    # --- IL CUORE DELL'ESPERIMENTO: LA SOGLIA CLINICA ---
-    # Se la probabilità di Melanoma supera il 15% (0.15),
-    # "forziamo" la predizione a essere Melanoma, ignorando le altre classi.
+    # --- THE CORE OF THE EXPERIMENT: CLINICAL THRESHOLD ---
+    # If the probability of Melanoma is > 15% (0.15),
+    # we "force" the prediction to be Melanoma, ignoring the others classes.
     MEL_THRESHOLD = 0.15 
     
     for i in range(len(y_pred_probs)):
         if y_pred_probs[i, mel_index] > MEL_THRESHOLD:
             y_pred_classes[i] = mel_index
 
-    # Salvataggi standard...
+    # Standard savings...
     cm = confusion_matrix(y_true_flat, y_pred_classes)
     plt.figure(figsize=(10, 8))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
@@ -131,11 +131,11 @@ if __name__ == "__main__":
     report_path = os.path.join(RESULTS_DIR, f"{EXP_NAME}_classification_report.txt")
     with open(report_path, "w") as f:
         f.write(f"Model Classification Report - {EXP_NAME}\n")
-        f.write(f"Soglia Melanoma Applicata: {MEL_THRESHOLD * 100}%\n")
-        f.write(f"Test Accuracy Base: {accuracy * 100:.2f}%\n\n")
+        f.write(f"Melanoma Threshold Applyed: {MEL_THRESHOLD * 100}%\n")
+        f.write(f"Base Test Accuracy: {accuracy * 100:.2f}%\n\n")
         f.write(report)
 
-    # Salvataggio History e Modello come al solito...
+    # Saving History and Model like usual...
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
     plt.plot(history.history['accuracy'], label='Train Accuracy')
@@ -152,4 +152,4 @@ if __name__ == "__main__":
     plt.close()
 
     model.save(os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5"))
-    print(f"\nModello {EXP_NAME} salvato.")
+    print(f"\nModel {EXP_NAME} saved.")

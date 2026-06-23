@@ -102,4 +102,4 @@ if __name__ == "__main__":
         train_ds,
         validation_data=valid_ds,
         epochs=epochs,
-        class_weight=class_weights_dict
+        class_weight=class_weights_dict)
