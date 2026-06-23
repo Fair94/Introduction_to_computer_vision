@@ -11,7 +11,7 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
     """
     Loading dataset: train, valid and test. Instead of using an online dataset, i'm using an offline one
     """
-    print("Tentativo di caricamento del dataset di lesioni cutanee...")
+    print("Attempting to load skin lesions dataset...")
     try:
         train_dir = os.path.join(base_dir, 'train')
         valid_dir = os.path.join(base_dir, 'valid')
@@ -55,11 +55,11 @@ def load_dataset(base_dir, img_height=224, img_width=224, batch_size=32):
 if __name__ == "__main__":
     DATASET_PATH = "./img_folder"
     
-    # --- VARIABILE CRITICA: NOME DELL'ESPERIMENTO ---
+    # --- CRITICAL VARIABLE: EXPERIMENT NAME ---
     EXP_NAME = "exp03_dropout"
 
-    # --- CARTELLA DEDICATA SOLO A QUESTO ESPERIMENTO ---
-    # Ora creerà in automatico una cartella chiamata "risultati_exp03_dropout"
+    # --- DEDICATED FOLDER ONLY FOR THIS EXPERIMENT ---
+    # Now it will automatically create a folder named "risultati_exp03_dropout"
     RESULTS_DIR = f"risultati_{EXP_NAME}" 
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -67,24 +67,24 @@ if __name__ == "__main__":
 
   
 
-    # Manteniamo la Data Augmentation del precedente esperimento
+    # We keep Data Augmentation from previous experiment
     data_augmentation = Sequential([
         layers.RandomFlip("horizontal_and_vertical"),
         layers.RandomRotation(0.2),
         layers.RandomZoom(0.2),
     ], name="data_augmentation")
 
-    # --- NUOVA ARCHITETTURA MODELLO CON DROPOUT ---
+    # --- NEW ARCHITECTURE MODEL WITH DROPOUT ---
     model = Sequential([
         layers.Input(shape=(224, 224, 3)),
         
         # 1. Data Augmentation
         data_augmentation,
         
-        # 2. Normalizzazione
+        # 2. Normalization
         layers.Rescaling(1./255),
         
-        # 3. Rete Convoluzionale
+        # 3. Convolutional Network
         layers.Conv2D(16, 3, padding='same', activation='relu'),
         layers.MaxPooling2D(),
         layers.Conv2D(32, 3, padding='same', activation='relu'),
@@ -95,24 +95,24 @@ if __name__ == "__main__":
         layers.Flatten(),
         layers.Dense(128, activation='relu'),
         
-        # --- NOVITÀ: LAYER DI DROPOUT (Regolarizzazione) ---
-        # Il 50% dei neuroni viene disattivato casualmente per prevenire l'overfitting
+        # --- NEW THING: DROPOUT LAYER (Regularization) ---
+        # 50% of neurons casually turned off to prevent overfitting
         layers.Dropout(0.5), 
         
         layers.Dense(7, activation='softmax') 
     ])
 
-    # Compilazione
+    # Compiling
     model.compile(
         optimizer='adam',
         loss='categorical_crossentropy', 
         metrics=['accuracy']
     )
 
-    # --- ADDESTRAMENTO ---
+    # --- TRAINING ---
     epochs = 20
     
-    print(f"\nInizio addestramento con Dropout (Esperimento: {EXP_NAME})...")
+    print(f"\nStarting training with Dropout (Experiment: {EXP_NAME})...")
     history = model.fit(
         train_ds,
         validation_data=valid_ds,
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         verbose=1 
     )
 
-    # --- VALUTAZIONE E SALVATAGGIO ---
+    # --- VALUATION AND SAVING ---
     loss, accuracy = model.evaluate(test_ds, verbose=0)
     
     y_true_flat = np.concatenate([np.argmax(y, axis=1) for x, y in test_ds], axis=0)
@@ -144,32 +144,4 @@ if __name__ == "__main__":
     with open(report_path, "w") as f:
         f.write(f"Model Classification Report - {EXP_NAME}\n")
         f.write(f"Test Accuracy: {accuracy * 100:.2f}%\n")
-        f.write(f"Test Loss: {loss:.4f}\n\n")
-        f.write(report)
-
-    # Salvataggio Grafici
-    plt.figure(figsize=(12, 5))
-    plt.subplot(1, 2, 1)
-    plt.plot(history.history['accuracy'], label='Train Accuracy')
-    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title(f'{EXP_NAME}: Model Accuracy')
-    plt.ylabel('Accuracy')
-    plt.xlabel('Epoch')
-    plt.legend()
-
-    plt.subplot(1, 2, 2)
-    plt.plot(history.history['loss'], label='Train Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title(f'{EXP_NAME}: Model Loss')
-    plt.ylabel('Loss')
-    plt.xlabel('Epoch')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_DIR, f"{EXP_NAME}_training_history.png"))
-    plt.close()
-
-    # Salvataggio Modello
-    MODEL_SAVE_PATH = os.path.join(RESULTS_DIR, f"{EXP_NAME}_model.h5")
-    model.save(MODEL_SAVE_PATH)
-    print(f"\nModello {EXP_NAME} salvato in {MODEL_SAVE_PATH}")
+        f.write(f"Test Loss: {loss:.4f}\n\
